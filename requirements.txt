@@ -5,3 +5,10 @@ whitenoise==6.3.0
 gunicorn == 20.1.0
 matplotlib
 numpy
+pillow
+selenium
+django-bootstrap4
+django-crispy-forms
+django-filter
+django-allauth>=0.56.0
+chromedriver-binary

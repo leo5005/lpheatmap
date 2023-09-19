@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-
+from django.utils import timezone
 
 
 class AttentionData(models.Model):
@@ -26,3 +26,22 @@ class ClickData(models.Model):
 
     def __str__(self):
         return f"Click Position:({self.click_position_x},{self.click_position_y}),Click_count:{self.click_count}"
+
+    
+class Url_Form(models.Model):
+    user = models.CharField('ユーザー名',max_length=20,null=False)
+    web_site = models.URLField(blank=True)
+    attention_data = models.ForeignKey('AttentionData', on_delete=models.CASCADE)
+    scroll_data = models.ForeignKey('ScrollData', on_delete=models.CASCADE)
+    click_data = models.ForeignKey('ClickData', on_delete=models.CASCADE)
+    
+    
+    def __str__(self):
+        return self.user
+    
+class Data_Search(models.Model):
+    date_field = models.DateField()
+    datetime_field = models.DateTimeField()
+    
+    def __str__(self):
+        return self.date_field

@@ -39,8 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'lpanalysis',
-    'login',
+    #'crispy_bootstrap4',
+    'django_filters',
+    "accounts",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -50,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'LPheatmap.urls'
@@ -57,7 +65,9 @@ ROOT_URLCONF = 'LPheatmap.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'accounts', 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -133,4 +143,42 @@ STATICFILES_DIRS = (
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'login.CustomUser'
+#django-allauthで利用するdjango.contrib.sitesを使うためにサイト識別用IDを設定
+SITE_ID = 1
+
+#ログイン/ログアウト後の遷移先を設定
+LOGIN_REDIRECT_URL = 'home'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+#メールアドレス認証に変更する設定
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+#ユーザー名の入力を必要とする設定
+ACCOUNT_USERNAME_REQUIRED = True
+
+#サインアップにメールアドレス確認をはさむよう設定
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_REQUIRED = True
+
+#メールサーバーへの接続設定
+DEFAULT_FROM_EMAIL = 'info.hemap@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'info.hemap@gmail.com'
+EMAIL_HOST_PASSWORD = 'epmtjctlgsumzjzt'
+EMAIL_USE_TLS = True
+
+#コンソールに表示
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# 実際にメールを送信
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+#USER_MODELの設定
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+AUTHENTICATION_BACKENDS = (
+    #メールアドレス認証
+    'allauth.account.auth_backends.AuthenticationBackend',
+    #ユーザー名認証
+    'django.contrib.auth.backends.ModelBackend',
+)
