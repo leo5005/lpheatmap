@@ -14,7 +14,6 @@ docker-compose up --build
 ```bash
 docker-compose run web python3 manage.py migrate
 ```
-docker-compose up --build
 そして以下のローカルホストにアクセス
 ```bash
 http://0.0.0.0:8000/

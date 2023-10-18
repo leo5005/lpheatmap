@@ -11,9 +11,9 @@ urlpatterns = [
     path("a-heatmap",views.heatmap_view, name="a-heatmap"),
     path("c-heatmap",views.click_heatmap_view, name="c-heatmap"),
     path("s-heatmap",views.scroll_heatmap_view, name="s-heatmap"),
-    #path("heatmap_form",views.capture_url, name="heatmap_form"),
     #path("search",views.Search_View.as_view(),name="search"),
-    path('test',views.test_chrome,name='test'),
+    #path('test',views.test_chrome,name='test'),
     path('home',views.HomeView.as_view(),name='home'),
-    path('home',views.UrlFormView.as_view(),name='url_form'),
+    path('urlform',views.save_url,name='urlform'),
+    path('urlview', views.get_url, name='urlview'),
 ]

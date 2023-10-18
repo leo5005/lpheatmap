@@ -1,11 +1,11 @@
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView,FormView
 from django_filters.views import FilterView
 from .filters import DataSearchFilter
-from django.http import JsonResponse
+from django.http import HttpResponse,JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import AttentionData,ClickData,ScrollData
+from .models import AttentionData,ClickData,ScrollData,Url_Form
 import json
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -15,9 +15,13 @@ from collections import defaultdict
 from selenium import webdriver
 from PIL import Image
 from io import BytesIO
-import time
+import datetime
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from .forms import User_Form
+from django.contrib import messages
+from django.urls import reverse_lazy
+
 
 
 
@@ -27,40 +31,103 @@ class Top(TemplateView):
 class HomeView(TemplateView):
     template_name = "lpanalysis/home.html"
     
-class UrlFormView(TemplateView):
-    template_name = "lpanalysis/url_form.html"
-    
-
-
 class Index(TemplateView):
-
     #テンプレートファイル連携
     template_name = "lpanalysis/index.html"
+    
+    
+def get_url(request):
+    urls = Url_Form.objects.all()
+    return render(request,"lpanalysis/url_view.html", {'urls' : urls })
+      
+       
+def save_url(request):
+    form = User_Form(request.POST or None)
+    ctx = {"form" : form}
+    if request.POST:
+        if form.is_valid():
+            url = form.cleaned_data['web_site']
+            form.save()
+            
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
 
-def test_chrome(cls):
+            # Chromeのパス
+            chrome_options.binary_location = '/opt/chrome'
+
+            # ChromeDriverのパス
+            driver_path = '/opt/chromedriver'
+            service = Service(executable_path=driver_path)
+
+            # ブラウザを起動
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # 保存する画像ファイル名            
+            fname = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+            
+            # Yahoo!JAPANを開く
+            driver.get(url)
+            #'https://www.yahoo.co.jp/'
+            
+            # ウインドウサイズをWebサイトに合わせて変更　※全画面用
+            width = driver.execute_script("return document.body.scrollWidth;")
+            height = driver.execute_script("return document.body.scrollHeight;")
+            driver.set_window_size(width,height)
+            
+            # スクショをPNG形式で保存
+            driver.get_screenshot_as_file("static/screenshot" + url + fname + ".png")
+                    
+            # ブラウザを閉じる
+            driver.close()
+            
+            messages.success(request, '登録しました。')
+            return redirect('urlform')
+        
+        else:    
+            messages.error(request, '登録できませんでした。')
+            return render(request, "lpanalysis/url_form.html", ctx)
+            
+    return render(request,"lpanalysis/url_form.html", ctx)
+
+
+def capture_screenshot(request):
     
     chrome_options = Options()
-    #chrome_options.add_argument('--headless')
-    #chrome_options.add_argument('--no-sandbox')
-
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
 
     # Chromeのパス
-    chrome_options.binary_location = 'chrome/chrome'
+    chrome_options.binary_location = '/opt/chrome'
 
     # ChromeDriverのパス
-    driver_path = 'chromedriver/chromedriver'
+    driver_path = '/opt/chromedriver'
     service = Service(executable_path=driver_path)
+
     # ブラウザを起動
     driver = webdriver.Chrome(service=service, options=chrome_options)
+    
+    # 保存する画像ファイル名            
+    fname = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    
     # Yahoo!JAPANを開く
-    driver.get('https://www.yahoo.co.jp/')
-
-    # ページが開くまで3秒待機
-    time.sleep(3)
-
+    driver.get('form')
+    #'https://www.yahoo.co.jp/'
+    
+    # ウインドウサイズをWebサイトに合わせて変更　※全画面用
+    width = driver.execute_script("return document.body.scrollWidth;")
+    height = driver.execute_script("return document.body.scrollHeight;")
+    driver.set_window_size(width,height)
+    
+    # スクショをPNG形式で保存
+    driver.get_screenshot_as_file("static/screenshot" + fname + ".png")
+            
     # ブラウザを閉じる
     driver.close()
-    
+            
+    #return render(request, 'lpanalysis/url_view.html', {'urls' : urls})
+
+        
 @csrf_exempt
 def receive_attention_data(request):
             if request.method == 'POST':
@@ -148,7 +215,7 @@ def heatmap_view(request):
     plt.ylabel("Attention Position")
     plt.xticks([])  
 
-    save_path = os.path.join(settings.BASE_DIR, "static", 'attentionheatmap.png')
+    save_path = os.path.join(settings.BASE_DIR, "static", 'screenshot2023-09-29-21-59-39.png')
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()  
@@ -189,7 +256,7 @@ def click_heatmap_view(request):
     plt.imshow(heatmap, cmap='Reds', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
     plt.colorbar(label='Click Count')
 
-    save_path = os.path.join(settings.BASE_DIR, "static", 'clickheatmap.png')
+    save_path = os.path.join(settings.BASE_DIR, "static", 'screenshot2023-09-29-21-59-39.png')
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
@@ -226,7 +293,7 @@ def scroll_heatmap_view(request):
     plt.ylabel("max_scroll_position")
     plt.xticks([])  
 
-    save_path = os.path.join(settings.BASE_DIR, "static", 'scrollheatmap.png')
+    save_path = os.path.join(settings.BASE_DIR, "static", 'screenshot2023-09-29-21-59-39.png')
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()  

@@ -1,0 +1,27 @@
+{% extends "lpanalysis/home.html" %}
+
+{% block content %}
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>URL</th>
+            <th>アテンションヒートマップ</th>
+            <th>クリックヒートマップ</th>
+            <th>スクロールヒートマップ</th>  
+        </tr>
+{% for url in urls %}
+        <tr>
+            <td>{{ url.id }}</td>
+            <td>{{ url.web_site }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>    
+{% empty %}
+    <p>No links found.</p>
+{% endfor %}
+
+{% endblock %}
+
+

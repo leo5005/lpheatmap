@@ -18,5 +18,5 @@ class LogoutView(views.LogoutView):
     def post(self, *args, **kwargs):
         if self.request.user.is_authenticated:
             self.logout()
-        return redirect('lpanalysis/home.html')
+        return redirect('account_logout')
     
