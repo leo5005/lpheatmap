@@ -13,7 +13,7 @@ def notify(request):
     return render(request, 'lpanalysis/home.html')    
 
 class LogoutView(views.LogoutView):
-    template_name = 'accounts/logout.html'
+    template_name = 'account/logout.html'
     
     def post(self, *args, **kwargs):
         if self.request.user.is_authenticated:

@@ -29,13 +29,7 @@ class ClickData(models.Model):
     
 class Url_Form(models.Model):
     web_site = models.URLField(max_length=200)
+    screenshot = models.ImageField(upload_to='screenshots/')
     
     def __str__(self):
         return self.web_site
-    
-class Data_Search(models.Model):
-    date_field = models.DateField()
-    datetime_field = models.DateTimeField()
-    
-    def __str__(self):
-        return self.date_field

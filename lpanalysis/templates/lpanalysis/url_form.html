@@ -30,26 +30,25 @@
             </div>
         </div>
         {% endif %}
-        <p>登録するURLのコードに以下のコードをbodyタグの下に設置してください</p>
-        <pre>
-            <code>
-            <script type="text/javascript">
-                const csrftoken = "{{ csrf_token }}";
-              
+        <p>↓登録するURLのコードに以下のコードを /body タグの上に設置してください</p>
+        <pre><code class="language-html">
+            &lt;script type=&quot;text/javascript&quot;&gt;
+                const csrftoken = &quot;{ csrf_token }&quot;;
+            
                 // ページロード時に既存のデータをローカルストレージから読み込む
                 let jsonString = localStorage.getItem('clickData');
                 let clickData = jsonString ? JSON.parse(jsonString) : {};
                 let attentionInterval = 1000; // 1秒ごとにチェック
                 let rangeSize = 1; // ピクセルごとに区切る
-              
+            
                 jsonString = localStorage.getItem('attentionData');
                 let attentionData = jsonString ? JSON.parse(jsonString) : {};
                 let intervalID = null;
-              
+            
                 jsonString = localStorage.getItem('scrollData');
                 let scrollData = jsonString ? JSON.parse(jsonString) : {};
                 let maxScrollPosition = 0;
-              
+            
                 // スクロールイベントのリスニング
                 window.addEventListener('scroll', function() {
                     let scrollPosition = window.pageYOffset;
@@ -62,12 +61,12 @@
                         }
                     }
                 });
-              
+            
                 // クリックイベントのリスニング
                 window.addEventListener('click', function(event) {
                     // クリック位置を文字列で表現
                     let clickPosition = `${event.pageX},${event.pageY}`;
-              
+            
                     // クリック位置のデータを追加
                     if(clickData[clickPosition]) {
                         clickData[clickPosition] += 1;
@@ -75,7 +74,7 @@
                         clickData[clickPosition] = 1;
                     }
                 });
-              
+            
                 function increaseStayTime() {
                     if (document.hasFocus()) {  // <- 追加：ウェブページがフォーカスされている時だけ滞在時間を増やす
                         let scrollPosition = window.scrollY;
@@ -86,7 +85,7 @@
                         }
                     }
                 }
-              
+            
                 function handleVisibilityChange() {
                     if (document.hidden) {
                         // ページが非表示状態になったとき、setIntervalをクリアする
@@ -97,22 +96,22 @@
                         intervalID = setInterval(increaseStayTime, attentionInterval);
                     }
                 }
-              
+            
                 document.addEventListener('visibilitychange', handleVisibilityChange);
-              
+            
                 intervalID = setInterval(increaseStayTime, attentionInterval);
-              
+            
                 window.addEventListener('beforeunload', function() {
                     // データをローカルストレージに保存
                     localStorage.setItem('clickData', JSON.stringify(clickData));
                     localStorage.setItem('attentionData', JSON.stringify(attentionData));
                     localStorage.setItem('scrollData', JSON.stringify(scrollData));
-              
+            
                     sendDataToServer('http://0.0.0.0:8000/receive-click-data', clickData); //本番サーバーのURLに書き換える
                     sendDataToServer('http://0.0.0.0:8000/receive-attention-data', attentionData); //本番サーバーのURLに書き換える
                     sendDataToServer('http://0.0.0.0:8000/receive-scroll-data', scrollData); //本番サーバーのURLに書き換える
                 });
-              
+            
                 function getCookie(name) {
                     let cookieValue = null;
                     if (document.cookie && document.cookie !== '') {
@@ -127,7 +126,7 @@
                     }
                     return cookieValue;
                 }
-              
+            
                 function sendDataToServer(url, data) {
                     let csrfToken = getCookie('csrftoken'); // CSRFトークンの取得
                     let jsonString = JSON.stringify(data);
@@ -137,9 +136,8 @@
                     xhr.setRequestHeader("X-CSRFToken", csrfToken); // リクエストヘッダーにCSRFトークンを設定
                     xhr.send(jsonString);
                 }
-            </script>
-            </code>
-        </pre>
+            &lt;/script&gt;
+        </code></pre>
     
     {% endif %}
 

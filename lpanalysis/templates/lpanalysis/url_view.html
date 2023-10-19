@@ -1,26 +1,26 @@
 {% extends "lpanalysis/home.html" %}
 
 {% block content %}
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>URL</th>
-            <th>アテンションヒートマップ</th>
-            <th>クリックヒートマップ</th>
-            <th>スクロールヒートマップ</th>  
-        </tr>
-{% for url in urls %}
-        <tr>
-            <td>{{ url.id }}</td>
-            <td>{{ url.web_site }}</td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    </table>    
+<table class="urltable">
+    <tr class="urlview">
+        <th>ID</th>
+        <th>URL</th>
+        <th>アテンション<br>ヒートマップ</th>
+        <th>クリック<br>ヒートマップ</th>
+        <th>スクロール<br>ヒートマップ</th>  
+    </tr>
+{% for urls in url_data %}
+    <tr class="urlview">
+        <td>{{ urls.id }}</td>
+        <td><a href="{{ urls.web_site }}">{{ urls.web_site }}</a></td>
+        <td><a href="{% url 'a-heatmap' urls.pk %}" target="_blank">◯</a></td>
+        <td><a href="{% url 'c-heatmap' urls.pk %}" target="_blank">◯</a></td>
+        <td><a href="{% url 's-heatmap' urls.pk %}" target="_blank">◯</a></td>
+    </tr>
 {% empty %}
-    <p>No links found.</p>
+    <p>データが登録されていません。</p>
 {% endfor %}
+</table>
 
 {% endblock %}
 

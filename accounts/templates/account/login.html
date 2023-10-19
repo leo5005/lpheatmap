@@ -1,0 +1,13 @@
+{% extends "account/base.html" %}
+{% block content %}
+<br>
+<h1>ログイン</h1>
+<div>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <p><a href="{% url 'account_reset_password' %}">パスワードを忘れた</a></p>
+        <button type="submit" class="btn btn-primary">ログイン</button>
+    </form>
+</div>
+{% endblock %}

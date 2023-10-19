@@ -1,11 +1,9 @@
 from django.views.generic import TemplateView,FormView
-from django_filters.views import FilterView
-from .filters import DataSearchFilter
 from django.http import HttpResponse,JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import AttentionData,ClickData,ScrollData,Url_Form
 import json
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -21,12 +19,9 @@ from selenium.webdriver.chrome.service import Service
 from .forms import User_Form
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.core.files import File
 
 
-
-
-class Top(TemplateView):
-    template_name = "lpanalysis/top.html"
     
 class HomeView(TemplateView):
     template_name = "lpanalysis/home.html"
@@ -35,11 +30,6 @@ class Index(TemplateView):
     #テンプレートファイル連携
     template_name = "lpanalysis/index.html"
     
-    
-def get_url(request):
-    urls = Url_Form.objects.all()
-    return render(request,"lpanalysis/url_view.html", {'urls' : urls })
-      
        
 def save_url(request):
     form = User_Form(request.POST or None)
@@ -75,9 +65,15 @@ def save_url(request):
             height = driver.execute_script("return document.body.scrollHeight;")
             driver.set_window_size(width,height)
             
-            # スクショをPNG形式で保存
-            driver.get_screenshot_as_file("static/screenshot" + url + fname + ".png")
-                    
+            # スクショをPNG形式で保存 
+            screenshot_path = "LP" + fname + ".png"
+            driver.save_screenshot(screenshot_path)  
+            
+            # データベースに保存
+            url_data = Url_Form(web_site=url)
+            url_data.screenshot.save(screenshot_path, File(open(screenshot_path, 'rb')))
+            url_data.save()
+                  
             # ブラウザを閉じる
             driver.close()
             
@@ -89,6 +85,12 @@ def save_url(request):
             return render(request, "lpanalysis/url_form.html", ctx)
             
     return render(request,"lpanalysis/url_form.html", ctx)
+
+
+def get_url(request):
+    url_data = Url_Form.objects.all()
+    return render(request,"lpanalysis/url_view.html", {'url_data' : url_data })
+      
 
 
 def capture_screenshot(request):
@@ -188,7 +190,10 @@ def receive_click_data(request):
 
 
 #アテンションヒートマップを作成するビュー
-def heatmap_view(request):
+def heatmap_view(request,pk):
+    screenshots = Url_Form.objects.values_list('screenshot',flat=True).get(pk=pk)
+    save_screen = screenshots
+    urls = get_object_or_404(Url_Form, pk=pk)
     attention_data = AttentionData.objects.all()
     attention_dict = defaultdict(int)
     
@@ -215,17 +220,20 @@ def heatmap_view(request):
     plt.ylabel("Attention Position")
     plt.xticks([])  
 
-    save_path = os.path.join(settings.BASE_DIR, "static", 'screenshot2023-09-29-21-59-39.png')
+    save_path = os.path.join(settings.BASE_DIR, "static",save_screen)
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()  
 
-    return render(request, 'lpanalysis/a-heatmap.html')
+    return render(request, 'lpanalysis/a-heatmap.html',{'urls' : urls })
 
 
 
 #クリックヒートマップを作成するビュー
-def click_heatmap_view(request):
+def click_heatmap_view(request,pk):
+    screenshots = Url_Form.objects.values_list('screenshot',flat=True).get(pk=pk)
+    save_screen = screenshots
+    urls = get_object_or_404(Url_Form, pk=pk)
     click_data = ClickData.objects.all()
 
     click_dict = defaultdict(int)
@@ -256,17 +264,19 @@ def click_heatmap_view(request):
     plt.imshow(heatmap, cmap='Reds', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
     plt.colorbar(label='Click Count')
 
-    save_path = os.path.join(settings.BASE_DIR, "static", 'screenshot2023-09-29-21-59-39.png')
+    save_path = os.path.join(settings.BASE_DIR, "static", save_screen)
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
 
-    return render(request, 'lpanalysis/c-heatmap.html')
+    return render(request, 'lpanalysis/c-heatmap.html',{'urls' : urls })
 
 
 #スクロールヒートマップを作成するビュー
-def scroll_heatmap_view(request):
-    
+def scroll_heatmap_view(request,pk):
+    screenshots = Url_Form.objects.values_list('screenshot',flat=True).get(pk=pk)
+    save_screen = screenshots
+    urls = get_object_or_404(Url_Form, pk=pk)
     scroll_data = ScrollData.objects.all()
     scroll_dict = defaultdict(int)
     
@@ -293,9 +303,9 @@ def scroll_heatmap_view(request):
     plt.ylabel("max_scroll_position")
     plt.xticks([])  
 
-    save_path = os.path.join(settings.BASE_DIR, "static", 'screenshot2023-09-29-21-59-39.png')
+    save_path = os.path.join(settings.BASE_DIR, "static",save_screen)
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()  
 
-    return render(request, 'lpanalysis/s-heatmap.html')
+    return render(request, 'lpanalysis/s-heatmap.html',{'urls' : urls })
